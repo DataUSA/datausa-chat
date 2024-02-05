@@ -35,21 +35,15 @@ def get_api_components_messages(table):
         {natural_language_query}
         \n---------------\n
 
-        Your goal is to identify the variables, measures and filters that are relevant and are needed in order to retrieve this data from the cube through an API.
-        Respond in JSON format with your answer separated into the following fields: 
-        \"variables\" which is a list of strings that contain the variables.\n
-        \"measures\" which is a list of strings that contain the relevant measures.\n
-        \"filters\" which is a list of strings that contain the filters in the form of 'variable = filtered_value'.\n
-
+        Your goal is to write an SQL query to retrieve this data from the database.
         Write your answer in markdown format.\n
         """
     )
 
     response_part = """
         {{
-            "variables": "",
-            "measures": "",
-            "filters": ""
+            SELECT
+            FROM 
         }}
         """
 
@@ -64,16 +58,13 @@ def get_api_components_messages(table):
         in your answer, provide the following information:\n
 
         - <one to two sentence comment explaining why the chosen variables, measures and filters can answer the query>\n
-        - <for each variable, measure and filter identified, comment double checking that they exist in the table with the specified name>\n
         - the markdown formatted like this:\n
         ```
         {response_part}
         ```
-        Provide only the list of variables, measures and filters, and nothing else after.\n
         A few rules to take into consideration:\n
         - You cannot apply filters to different variables with the same parent dimension. Choose only one (the most relevant or most granular)\n
         - Assume the latest year to be 2023.\n
-        - For cases where the query requires to filter by a certain range of years or months, please specify all of them separately.
         """
     )
 

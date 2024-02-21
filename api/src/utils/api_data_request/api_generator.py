@@ -38,7 +38,7 @@ def get_api_components_messages(table):
         You are an expert data scientist working with data organized in a multidimensional format, such as in OLAP cubes.
         You are given the following JSON containing the information of a cube that contains data to answer a user's question. 
         ---------------------\n
-        {table.columns_description()}
+        {table.get_dimensions_with_hierarchies_and_measures()}
         ---------------------\n
 
         Your goal is to identify the variables, measures and filters needed in order to retrieve the data from the cube through an API.
@@ -56,6 +56,7 @@ def get_api_components_messages(table):
         ```
         Provide only the list of variables, measures and filters, and nothing else after.\n
         A few rules to take into consideration:\n
+        - If you want to add several variables with the same parent dimension you need to ensure these are in the same hierarchies. If they have different hierarchies, the query will not work.
         - You cannot apply filters to different variables with the same parent dimension. Choose only one (the most relevant or most granular)\n
         - Assume the latest year to be 2023.\n
         - For cases where the query requires to filter by a certain range of years or months, please specify all of them separately.

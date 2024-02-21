@@ -1,6 +1,5 @@
 import json
 
-from os import getenv
 from typing import List
 
 class Table:
@@ -10,7 +9,7 @@ class Table:
         self.api = table_data.get('api')
         self.description = table_data.get('description')
         self.measures = table_data.get('measures', [])
-        self.variables = table_data.get('variables', [])
+        self.dimensions = table_data.get('dimensions', [])
 
     def get_measures_description(self, measure_name=None):
         if measure_name:
@@ -21,30 +20,30 @@ class Table:
         
         else: return [f"{measure['name']}: {measure.get('description', 'No description available')}" for measure in self.measures]
 
-    def get_variables_description(self, variable_name=None):
-        if variable_name:
-            for variable in self.variables:
-                if variable['name'] == variable_name:
-                    return f"{variable['name']}: {variable.get('description', 'No description available')}"
-            return f"No description available for variable: {variable_name}"
+    def get_dimensions_description(self, dimension_name=None):
+        if dimension_name:
+            for dimension in self.dimensions:
+                if dimension['name'] == dimension_name:
+                    return f"{dimension['name']}: {dimension.get('description', 'No description available')}"
+            return f"No description available for dimension: {dimension_name}"
         
-        else: return [f"{variable['name']}: {variable.get('description', 'No description available')}" for variable in self.variables]
+        else: return [f"{dimension['name']}: {dimension.get('description', 'No description available')}" for dimension in self.dimensions]
 
-    def get_variable_hierarchies(self, variable_name):
-        for variable in self.variables:
-            if variable['name'] == variable_name and "hierarchies" in variable:
-                return variable["hierarchies"]
+    def get_dimension_hierarchies(self, dimension_name):
+        for dimension in self.dimensions:
+            if dimension['name'] == dimension_name and "hierarchies" in dimension:
+                return dimension["hierarchies"]
         return None
     
     def schema_description(self):
-        dimensions_str = ", ".join([f"{var['name']} ({var.get('description', 'No description')})" for var in self.variables])
+        dimensions_str = ", ".join([f"{var['name']} ({var.get('description', 'No description')})" for var in self.dimensions])
         measures_str = ", ".join([f"{measure['name']} ({measure.get('description', 'No description')})" for measure in self.measures])
         return f"Table Name: {self.name}\nDescription: {self.description}\nDimensions: {dimensions_str}\nMeasures: {measures_str}\n"
 
     def columns_description(self):
         dimensions_str_list = [
-            f"{dimension['name']} ({dimension.get('description', 'No description')}) [Parent dimension: {dimension.get('parent dimension', 'N/A')}];\n" 
-            for dimension in self.variables
+            f"{dimension['name']} ({dimension.get('description', 'No description')});\n" 
+            for dimension in self.dimensions
         ]
         
         measures_str_list = [
@@ -55,14 +54,34 @@ class Table:
         dimensions_str = ''.join(dimensions_str_list)
         measures_str = ''.join(measures_str_list)
 
-        columns_str = f"Table Name: {self.name}\n" + "Variables:\n" + dimensions_str + "Measures:\n" + measures_str
+        columns_str = f"Table Name: {self.name}\n" + "Dimensions:\n" + dimensions_str + "Measures:\n" + measures_str
         return columns_str
 
     def __str__(self):
         measures_str = ", ".join(self.get_measures_description())
-        variables_str = ", ".join(self.get_variables_description())
-        return f"Table Name: {self.name}\nDescription: {self.description}\nMeasures: {measures_str}\nVariables: {variables_str}\n"
+        dimensions_str = ", ".join(self.get_dimensions_description())
+        return f"Table Name: {self.name}\nDescription: {self.description}\nMeasures: {measures_str}\nDimensions: {dimensions_str}\n"
     
+    def get_dimensions_with_hierarchies_and_measures(self):
+        output = []
+
+        # Process dimensions
+        output.append("Dimensions:\n")
+        for dimension in self.dimensions:
+            dimension_info = f"{dimension['name']} ({dimension.get('description', 'No description')})\n"
+            hierarchy_info = ""
+            for idx, hierarchy in enumerate(dimension.get('hierarchies', []), 1):
+                hierarchy_info += f"- Hierarchy {idx}: {hierarchy}\n"
+            output.append(dimension_info + hierarchy_info)
+
+        # Process measures
+        output.append("\nMeasures:\n")
+        for measure in self.measures:
+            measure_info = f"{measure['name']} ({measure.get('description', 'No description')})\n"
+            output.append(measure_info)
+
+        return ''.join(output)
+
 
 class TableManager:
 
@@ -101,9 +120,9 @@ class TableManager:
         return "\n\n".join(tables_str_list)
 
 
-def get_drilldown_levels(manager, table_name, variable_name):
+def get_drilldown_levels(manager, table_name, dimension_name):
     table = manager.get_table(table_name)
     if table:
-        return table.get_variable_hierarchies(variable_name)
+        return table.get_dimension_hierarchies(dimension_name)
     else:
         return None

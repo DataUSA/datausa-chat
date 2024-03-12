@@ -31,17 +31,14 @@ def get_api(query, TABLES_PATH):
         return api_url, data, response
     
 
-# Modify get_api function to yield intermediate results
 def get_api_new(query, TABLES_PATH):
     start_time = time.time()
 
     manager = TableManager(TABLES_PATH)
     
-    # Yield intermediate result: output of request_tables_to_lm_from_db
     table = request_tables_to_lm_from_db(query, manager)
     yield {"step": "request_tables_to_lm_from_db", "table": table}
     
-    # Yield intermediate result: output of get_api_params_from_lm
     variables, measures, cuts = get_api_params_from_lm(query, table, model='gpt-4')
     yield {"step": "get_api_params_from_lm", "variables": variables, "measures": measures, "cuts": cuts}
     
@@ -49,7 +46,6 @@ def get_api_new(query, TABLES_PATH):
     api_url = api.build_url()
     print("API:", api_url)
 
-    # Yield intermediate result: output of fetch_data
     data, df, response = api.fetch_data()
     yield {"step": "fetch_data", "data": data, "df": df, "response": response}
     
